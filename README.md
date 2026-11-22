@@ -55,6 +55,32 @@ Catálogo completo no repositório de orquestração.
 | `IEDUCAR_ESCOLA_ID`, `IEDUCAR_ANO_LETIVO` | — | Sem valor: escolas ativas e ano em andamento |
 | `INTERVALO_SEGUNDOS` | `60` | Intervalo entre ciclos |
 
+## Estrutura (arquitetura hexagonal)
+
+O domínio fica no centro e não conhece banco, broker nem HTTP; o caso de uso o usa
+por meio das portas (interfaces), e os adaptadores as implementam. Trocar o SQLite
+ou o RabbitMQ é trocar um adaptador; os testes usam versões em memória das portas.
+
+```
+src/detector/
+├── dominio/            regras puras, sem banco, rede nem framework
+│   ├── modelos.py      dados do i-Educar (turma, servidor, aluno, matrícula...)
+│   ├── estado.py       monta o estado de cada entidade (o que vai no evento)
+│   └── mudancas.py     compara com o snapshot e decide os eventos
+├── aplicacao/
+│   └── rodar_ciclo.py  caso de uso: lê, detecta, publica e só então grava o snapshot
+├── portas.py           interfaces: IEducar, Snapshot, PublicadorDeEventos
+├── adaptadores/        implementações das portas e entradas do serviço
+│   ├── ieducar.py      porta IEducar sobre a API do i-Educar (timeout + retry)
+│   ├── sqlite.py       porta Snapshot
+│   ├── rabbitmq.py     porta PublicadorDeEventos
+│   ├── api.py          entrada HTTP (POST /ciclos, /health, /metrics)
+│   └── agendador.py    entrada por tempo (um ciclo a cada 60s)
+├── infra/              logs JSON, métricas, retry
+├── mensagem.py         formato das mensagens (o contrato com os outros serviços)
+└── main.py             composição: cria os adaptadores e os injeta no caso de uso
+```
+
 ## Desenvolvimento
 
 ```bash

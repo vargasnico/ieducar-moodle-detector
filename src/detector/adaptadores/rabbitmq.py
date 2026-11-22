@@ -1,4 +1,5 @@
-"""RabbitMQ: publicação e consumo com retry e dead-letter queue.
+"""Adaptador do RabbitMQ: saída (publicação dos eventos); o consumo, com retry e DLQ, é o
+mesmo dos outros serviços.
 
 Todos os serviços publicam na exchange "integracao" (topic), com a routing key
 `<tipo>.v<versao>`. Cada consumidor declara só a PRÓPRIA fila, com duas auxiliares:
@@ -19,9 +20,9 @@ from collections.abc import Awaitable, Callable
 import aio_pika
 from aio_pika.abc import AbstractIncomingMessage
 
-from detector.logs import correlation_id
+from detector.infra.logs import correlation_id
+from detector.infra.metricas import MENSAGENS
 from detector.mensagem import Mensagem
-from detector.metricas import MENSAGENS
 
 log = logging.getLogger(__name__)
 

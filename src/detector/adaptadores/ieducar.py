@@ -1,100 +1,32 @@
-"""Cliente da API legada do i-Educar (/module/Api/*), autenticada por access_key.
+"""Adaptador da porta IEducar sobre a API legada (/module/Api/*), autenticada por access_key.
 
 Só leitura, então cada chamada pode ser repetida à vontade: o retry com backoff fica
 na própria chamada HTTP (o timeout é configurado no httpx.AsyncClient, em main.py).
 """
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 import httpx
 
-from detector.retry import com_retry
+from detector.dominio.modelos import (
+    Aluno,
+    Componente,
+    Dispensa,
+    Enturmacao,
+    Escola,
+    Matricula,
+    Servidor,
+    Turma,
+    Vinculo,
+)
+from detector.infra.retry import com_retry
 
 log = logging.getLogger(__name__)
 
 
 class IEducarError(Exception):
     """A API do i-Educar recusou a consulta (erro de negócio, não de rede)."""
-
-
-@dataclass(frozen=True)
-class Escola:
-    escola_id: int
-    nome: str
-    ativo: bool
-
-
-@dataclass(frozen=True)
-class Servidor:
-    servidor_id: int
-    nome: str
-    cpf: str | None
-    ativo: bool
-    updated_at: str
-    email: str | None = None
-
-
-@dataclass(frozen=True)
-class Vinculo:
-    """Alocação de um servidor como professor numa turma (modules.professor_turma)."""
-
-    vinculo_id: int
-    servidor_id: int
-    turma_id: int
-    componentes: tuple[int, ...]
-    ativo: bool
-
-
-@dataclass(frozen=True)
-class Turma:
-    turma_id: int
-    nome: str
-    ano: int
-    escola_id: int
-    # Uma turma multisseriada tem mais de uma série.
-    series: tuple[int, ...]
-    ativo: bool
-
-
-@dataclass(frozen=True)
-class Componente:
-    componente_id: int
-    nome: str
-
-
-@dataclass(frozen=True)
-class Aluno:
-    aluno_id: int
-    nome: str
-    nome_social: str | None
-    ativo: bool
-
-
-@dataclass(frozen=True)
-class Matricula:
-    matricula_id: int
-    aluno_id: int
-    escola_id: int
-    ativo: bool
-
-
-@dataclass(frozen=True)
-class Enturmacao:
-    matricula_id: int
-    turma_id: int
-    serie_id: int
-    # Sem exclusão e sem data de saída. Transferência, remanejamento, abandono e
-    # falecimento mantêm deleted_at vazio e só preenchem a data de saída.
-    ativa: bool
-
-
-@dataclass(frozen=True)
-class Dispensa:
-    matricula_id: int
-    componente_id: int
-    ativa: bool
 
 
 def _ativo(value: Any) -> bool:
