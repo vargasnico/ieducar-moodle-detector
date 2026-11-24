@@ -20,7 +20,7 @@ que sobe tudo com um `docker compose up`.
 | `ieducar.turma.alterada.v1` | `turma_id`, `nome`, `ano`, `ativa`, `componentes: [{id, nome}]` |
 | `ieducar.servidor.alterado.v1` | `servidor_id`, `nome`, `cpf`, `email`, `ativo`, `vinculos: [{turma_id, componentes}]` |
 | `ieducar.aluno.alterado.v1` | `aluno_id`, `nome`, `ativo`, `turmas: [{turma_id, componentes}]` |
-| `ieducar.{turma,servidor,aluno}.removido.v1` | `<tipo>_id` |
+| `ieducar.turma.removida.v1` · `ieducar.servidor.removido.v1` · `ieducar.aluno.removido.v1` | `turma_id` · `servidor_id` · `aluno_id` |
 
 Formato das mensagens em [`src/detector/mensagem.py`](src/detector/mensagem.py).
 Catálogo completo no repositório de orquestração.

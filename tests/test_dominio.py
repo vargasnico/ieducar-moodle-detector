@@ -59,3 +59,18 @@ def test_o_que_sumiu_vira_remocao():
     m = detectar({}, anterior={"aluno:20": "abc"})
     assert [(e.tipo, e.dados) for e in m.eventos] == [("ieducar.aluno.removido", {"aluno_id": 20})]
     assert m.snapshot == {"aluno:20": ("aluno", None)}
+
+
+def test_nomes_dos_eventos_seguem_o_catalogo():
+    """O contrato com o sincronizador: turma é feminino (alterada, removida)."""
+    atual = {"turma:10": ("turma", TURMA), "aluno:20": ("aluno", ALUNO)}
+    assert {e.tipo for e in detectar(atual, {}).eventos} == {
+        "ieducar.turma.alterada",
+        "ieducar.aluno.alterado",
+    }
+    anterior = {"turma:10": "h", "servidor:7": "h", "aluno:20": "h"}
+    assert {e.tipo for e in detectar({}, anterior).eventos} == {
+        "ieducar.turma.removida",
+        "ieducar.servidor.removido",
+        "ieducar.aluno.removido",
+    }

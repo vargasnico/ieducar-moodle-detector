@@ -14,10 +14,17 @@ from detector.dominio.estado import Estado
 # Turmas antes de servidores e alunos: os cursos tendem a ser criados antes das
 # inscrições (se não forem, a inscrição espera na fila de retry do publicador).
 ORDEM = ("turma", "servidor", "aluno")
-EVENTO = {
+# Nomes dos eventos, exatamente como no catálogo de mensagens (o contrato com o
+# sincronizador). Escritos por extenso: "turma" é feminino (alterada, removida).
+ALTERADO = {
     "turma": "ieducar.turma.alterada",
     "servidor": "ieducar.servidor.alterado",
     "aluno": "ieducar.aluno.alterado",
+}
+REMOVIDO = {
+    "turma": "ieducar.turma.removida",
+    "servidor": "ieducar.servidor.removido",
+    "aluno": "ieducar.aluno.removido",
 }
 
 
@@ -45,11 +52,11 @@ def detectar(atual: Estado, anterior: dict[str, str], completo: bool = False) ->
     for chave, (tipo, dados) in sorted(atual.items(), key=lambda item: ORDEM.index(item[1][0])):
         h = hash_do_estado(dados)
         if completo or anterior.get(chave) != h:
-            mudancas.eventos.append(Evento(EVENTO[tipo], dados))
+            mudancas.eventos.append(Evento(ALTERADO[tipo], dados))
             mudancas.snapshot[chave] = (tipo, h)
     for chave in sorted(anterior.keys() - atual.keys()):
         tipo, id_ = chave.split(":")
         # Sumiu do ano letivo no i-Educar (ex.: aluno saiu da escola).
-        mudancas.eventos.append(Evento(f"ieducar.{tipo}.removido", {f"{tipo}_id": int(id_)}))
+        mudancas.eventos.append(Evento(REMOVIDO[tipo], {f"{tipo}_id": int(id_)}))
         mudancas.snapshot[chave] = (tipo, None)
     return mudancas
